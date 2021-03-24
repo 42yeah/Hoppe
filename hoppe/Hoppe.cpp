@@ -193,11 +193,38 @@ auto Hoppe::fix_orientations() -> void {
     for (auto &thread : threads) {
         thread.join();
     }
-    
+
     graph.clean_duplicate_edges();
     
     HOPPE_LOG("Graph generation done. #nodes: %lu, #edges: %lu",
               graph.num_nodes,
               graph.edges.size());
+    
+    const auto mst = graph.generate_mst();
+
+    HOPPE_LOG("Minimal spanning tree generation done. #nodes: %lu, #edges: %lu",
+              mst.num_nodes,
+              mst.edges.size());
+    
+    auto highest = std::max_element(tangent_planes.planes.begin(),
+                     tangent_planes.planes.end(),
+                     [] (const auto &p1, const auto &p2) {
+        return p1.origin.y > p2.origin.y;
+    });
+    const cv::Vec3f up(0.0f, 1.0f, 0.0f);
+    if (highest->normal.dot(up) < 0.0f) {
+        highest->normal = -highest->normal;
+    }
+    auto corrected = 0;
+    auto previous = *highest;
+    mst.traverse_dfs((int) (highest - tangent_planes.planes.begin()), [&] (const auto idx) {
+        if (tangent_planes.planes[idx].normal.dot(previous.normal) < 0.0f) {
+            tangent_planes.planes[idx].normal = -tangent_planes.planes[idx].normal;
+            corrected++;
+        }
+        previous = tangent_planes.planes[idx];
+    });
+    
+    HOPPE_LOG("Normal correction done. Corrected: #%d", corrected);
 }
 
