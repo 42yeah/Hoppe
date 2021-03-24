@@ -43,9 +43,9 @@ public:
     Parameters parameters;
     
 private:
-    auto estimate_planes() -> void;
+    auto estimate_planes() -> bool;
     
-    auto propagate_normals() -> void;
+    auto fix_orientations() -> void;
     
     auto create_grid_bounds() -> void;
     

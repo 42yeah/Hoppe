@@ -14,6 +14,7 @@
 		18860A10260AD1DA005B27B4 /* libopencv_core.4.5.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 18860A0D260AD1DA005B27B4 /* libopencv_core.4.5.2.dylib */; };
 		18860A11260AD1DA005B27B4 /* libopencv_core.4.5.2.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 18860A0D260AD1DA005B27B4 /* libopencv_core.4.5.2.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		18860A15260AD241005B27B4 /* hoppe_common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18860A13260AD241005B27B4 /* hoppe_common.cpp */; };
+		18860A22260AF40A005B27B4 /* UGraph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18860A20260AF40A005B27B4 /* UGraph.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -50,6 +51,9 @@
 		18860A13260AD241005B27B4 /* hoppe_common.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = hoppe_common.cpp; sourceTree = "<group>"; };
 		18860A14260AD241005B27B4 /* hoppe_common.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = hoppe_common.hpp; sourceTree = "<group>"; };
 		18860A17260AD3B5005B27B4 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = "<group>"; };
+		18860A1C260AD792005B27B4 /* nanoflann.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = nanoflann.hpp; sourceTree = "<group>"; };
+		18860A20260AF40A005B27B4 /* UGraph.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UGraph.cpp; sourceTree = "<group>"; };
+		18860A21260AF40A005B27B4 /* UGraph.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = UGraph.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +72,7 @@
 		188609F2260ACFBB005B27B4 = {
 			isa = PBXGroup;
 			children = (
+				18860A19260AD69D005B27B4 /* dep */,
 				18860A17260AD3B5005B27B4 /* assets */,
 				188609FD260ACFBB005B27B4 /* hoppe */,
 				188609FC260ACFBB005B27B4 /* Products */,
@@ -91,6 +96,8 @@
 				18860A07260AD099005B27B4 /* Hoppe.hpp */,
 				18860A13260AD241005B27B4 /* hoppe_common.cpp */,
 				18860A14260AD241005B27B4 /* hoppe_common.hpp */,
+				18860A20260AF40A005B27B4 /* UGraph.cpp */,
+				18860A21260AF40A005B27B4 /* UGraph.hpp */,
 			);
 			path = hoppe;
 			sourceTree = "<group>";
@@ -104,6 +111,22 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		18860A19260AD69D005B27B4 /* dep */ = {
+			isa = PBXGroup;
+			children = (
+				18860A1A260AD6A2005B27B4 /* nanoflann */,
+			);
+			path = dep;
+			sourceTree = "<group>";
+		};
+		18860A1A260AD6A2005B27B4 /* nanoflann */ = {
+			isa = PBXGroup;
+			children = (
+				18860A1C260AD792005B27B4 /* nanoflann.hpp */,
+			);
+			path = nanoflann;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -112,10 +135,10 @@
 			buildConfigurationList = 18860A02260ACFBB005B27B4 /* Build configuration list for PBXNativeTarget "hoppe" */;
 			buildPhases = (
 				18860A18260AD3D6005B27B4 /* ShellScript */,
+				18860A12260AD1DA005B27B4 /* Embed Libraries */,
 				188609F7260ACFBB005B27B4 /* Sources */,
 				188609F8260ACFBB005B27B4 /* Frameworks */,
 				188609F9260ACFBB005B27B4 /* CopyFiles */,
-				18860A12260AD1DA005B27B4 /* Embed Libraries */,
 			);
 			buildRules = (
 			);
@@ -184,6 +207,7 @@
 			files = (
 				18860A08260AD099005B27B4 /* Hoppe.cpp in Sources */,
 				18860A15260AD241005B27B4 /* hoppe_common.cpp in Sources */,
+				18860A22260AF40A005B27B4 /* UGraph.cpp in Sources */,
 				188609FF260ACFBB005B27B4 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -309,7 +333,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KL2JALR869;
 				ENABLE_HARDENED_RUNTIME = YES;
-				HEADER_SEARCH_PATHS = /usr/local/include/opencv4;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include/opencv4,
+					"$(SRCROOT)/dep/nanoflann",
+				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -322,7 +349,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KL2JALR869;
 				ENABLE_HARDENED_RUNTIME = YES;
-				HEADER_SEARCH_PATHS = /usr/local/include/opencv4;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include/opencv4,
+					"$(SRCROOT)/dep/nanoflann",
+				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
