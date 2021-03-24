@@ -9,6 +9,7 @@
 #define UGraph_hpp
 
 #include <vector>
+#include <mutex>
 
 
 struct Edge {
@@ -23,6 +24,8 @@ public:
     ~UGraph() = default;
     
     auto add_edge(Edge edge) -> bool;
+    
+    auto clean_duplicate_edges() -> void;
     
     std::vector<Edge> edges;
     

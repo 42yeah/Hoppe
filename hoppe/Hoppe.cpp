@@ -7,6 +7,8 @@
 
 #include "Hoppe.hpp"
 #include <fstream>
+#include <thread>
+#include <mutex>
 #include "UGraph.hpp"
 
 
@@ -85,8 +87,12 @@ auto Hoppe::estimate_planes() -> bool {
 
         // Calculate covariance matrix & normal
         cv::Matx33f covariance_mat;
-        for (auto j = 1; j < nbhd_count; j++) {
-            const auto neighbor = pointcloud.points[indices[j]];
+        for (auto j = 0; j < nbhd_count; j++) {
+            const auto current_index = indices[j];
+            if (current_index == i) {
+                continue;
+            }
+            const auto neighbor = pointcloud.points[current_index];
             const auto oy = neighbor - centroid;
             const cv::Matx31f oy_mat = { oy.x, oy.y, oy.z };
             cv::Matx33f outer_product;
@@ -126,33 +132,69 @@ auto Hoppe::fix_orientations() -> void {
     const auto num_neighbors = parameters.k + 1;
     PlaneCloudIndex index(3, tangent_planes, nanoflann::KDTreeSingleIndexAdaptorParams(5));
     index.buildIndex();
-
-    for (auto i = 0; i < tangent_planes.planes.size(); i++) {
-        const auto &p1 = tangent_planes.planes[i];
-        std::vector<std::size_t> indices(num_neighbors);
-        std::vector<float> out_squared_dist(num_neighbors);
-        const auto nbhd_count = index.knnSearch(&p1.origin.x, num_neighbors, &indices[0], &out_squared_dist[0]);
+    
+    // Use thread to parallelize operations
+    const auto num_threads = std::min((int) std::thread::hardware_concurrency(),
+                                      (int) tangent_planes.planes.size());
+    const auto planes_per_thread = (int) ceilf(tangent_planes.planes.size() / num_threads);
+    std::vector<std::thread> threads;
+    std::mutex write_mutex;
+    HOPPE_LOG("Parallelize planes per thread: %d-%d", planes_per_thread, num_threads);
+    
+    for (auto thread_id = 0; thread_id < num_threads; thread_id++) {
         
-        if (nbhd_count != num_neighbors) {
-            HOPPE_LOG("WARNING! Failed to find enough neighbors for plane %f %f %f",
-                      p1.origin.x,
-                      p1.origin.y,
-                      p1.origin.z);
-        }
+        const auto begin_tp_index = thread_id * planes_per_thread;
+        const auto end_tp_index = thread_id == num_threads - 1 ?
+                                    tangent_planes.planes.size() :
+                                    (thread_id + 1) * planes_per_thread;
+        
+        threads.push_back(std::thread([&, begin_tp_index, end_tp_index, thread_id] () {
+            
+            write_mutex.lock();
+            HOPPE_LOG("Processing from %d to %lu", begin_tp_index, end_tp_index);
+            write_mutex.unlock();
+            for (auto i = begin_tp_index; i < end_tp_index; i++) {
+                const auto &p1 = tangent_planes.planes[i];
+                std::vector<std::size_t> indices(num_neighbors);
+                std::vector<float> out_squared_dist(num_neighbors);
+                const auto nbhd_count = index.knnSearch(&p1.origin.x, num_neighbors, &indices[0], &out_squared_dist[0]);
 
-        // For each of its neighbors...
-        for (auto j = 0; j < nbhd_count; j++) {
-            const auto p2_plane_index = indices[j];
-            if (i == p2_plane_index) {
-                continue;
+                if (nbhd_count != num_neighbors) {
+                    write_mutex.lock();
+                    HOPPE_LOG("WARNING! Failed to find enough neighbors for plane %f %f %f",
+                              p1.origin.x,
+                              p1.origin.y,
+                              p1.origin.z);
+                    write_mutex.unlock();
+                }
+
+                // For each of its neighbors...
+                for (auto j = 0; j < nbhd_count; j++) {
+                    const auto p2_plane_index = indices[j];
+                    if (i == p2_plane_index) {
+                        continue;
+                    }
+                    const auto p2 = tangent_planes.planes[p2_plane_index];
+                    auto cost = 1.0f - fabs(p1.normal.dot(p2.normal));
+                    write_mutex.lock();
+                    graph.add_edge({ IndexToTangentPlane(i),
+                                     p2_plane_index,
+                                     cost });
+                    write_mutex.unlock();
+                }
             }
-            const auto p2 = tangent_planes.planes[p2_plane_index];
-            auto cost = 1.0f - fabs(p1.normal.dot(p2.normal));
-            graph.add_edge({ IndexToTangentPlane(i),
-                             p2_plane_index,
-                             cost });
-        }
+            write_mutex.lock();
+            HOPPE_LOG("Thread %d completed.", thread_id);
+            write_mutex.unlock();
+
+        }));
     }
+
+    for (auto &thread : threads) {
+        thread.join();
+    }
+    
+    graph.clean_duplicate_edges();
     
     HOPPE_LOG("Graph generation done. #nodes: %lu, #edges: %lu",
               graph.num_nodes,
