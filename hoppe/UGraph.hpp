@@ -13,6 +13,7 @@
 #include <functional>
 
 
+typedef int EdgeIndex;
 struct Edge {
     std::size_t a, b;
     float cost;
