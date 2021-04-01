@@ -21,6 +21,13 @@ auto Hoppe::run() -> bool {
     estimate_planes();
     
     fix_orientations();
+    
+    cv::Vec3f bounding_box_min, bounding_box_max;
+    calculate_bounds(bounding_box_min, bounding_box_max);
+    cv::Vec3f size = bounding_box_max - bounding_box_min;
+    HOPPE_LOG("Bounding box size: %f %f %f", size(0), size(1), size(2));
+
+    parameters.density = density_estimation(size);
 
     return true;
 }
@@ -226,5 +233,67 @@ auto Hoppe::fix_orientations() -> void {
     });
     
     HOPPE_LOG("Normal correction done. Corrected: #%d", corrected);
+}
+
+auto Hoppe::sdf(cv::Point3f point) -> std::optional<float> {
+    auto closest_index = -1;
+    auto closest_dist = 0.0f;
+    
+    for (auto i = 0; i < tangent_planes.planes.size(); i++) {
+        const auto &plane = tangent_planes.planes[i];
+        const auto dist_to_sample_point = cv::norm(point - plane.origin);
+        if (closest_index == -1 || dist_to_sample_point < closest_dist) {
+            closest_dist = dist_to_sample_point;
+            closest_index = i;
+        }
+    }
+    if (closest_index == -1) {
+        HOPPE_LOG("Could not calculate SDF as there is no plane.");
+        return {};
+    }
+    const auto &plane = tangent_planes.planes[closest_index];
+    const auto normal_p = VEC2POINT(plane.normal);
+    
+    // Calculate projected length on normal.
+    const auto projected_length = (point - plane.origin).dot(normal_p);
+    const auto z = plane.origin - projected_length * normal_p;
+    if (cv::norm(z - plane.origin) >= parameters.density + parameters.noise) {
+        return {};
+    }
+    return projected_length;
+}
+
+auto Hoppe::calculate_bounds(cv::Vec3f &bounding_box_min, cv::Vec3f &bounding_box_max) -> void { 
+    if (tangent_planes.planes.size() <= 0) {
+        HOPPE_LOG("WARNING! There are no planes, and therefore there are no bounds.");
+        return;
+    }
+    cv::Point3f bb_min, bb_max;
+    bounding_box_min = POINT2VEC(tangent_planes.planes[0].origin);
+    bounding_box_max = POINT2VEC(tangent_planes.planes[0].origin);
+    for (auto i = 1; i < tangent_planes.planes.size(); i++) {
+        const auto &origin = tangent_planes.planes[i].origin;
+        if (origin.x < bounding_box_min(0)) {
+            bounding_box_min(0) = origin.x;
+        } else if (origin.x > bounding_box_max(0)) {
+            bounding_box_max(0) = origin.x;
+        }
+        if (origin.y < bounding_box_min(1)) {
+            bounding_box_min(1) = origin.y;
+        } else if (origin.y > bounding_box_max(1)) {
+            bounding_box_max(1) = origin.y;
+        }
+        if (origin.z < bounding_box_min(2)) {
+            bounding_box_min(2) = origin.z;
+        } else if (origin.z > bounding_box_max(2)) {
+            bounding_box_max(2) = origin.z;
+        }
+    }
+}
+
+auto Hoppe::density_estimation(cv::Vec3f bounding_box_size) -> float {
+    auto density = (8.0f * bounding_box_size(0) * bounding_box_size(1) * bounding_box_size(2)) / tangent_planes.planes.size();
+    HOPPE_LOG("Guestimated density: %f", density);
+    return density;
 }
 

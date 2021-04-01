@@ -15,6 +15,7 @@
 		18860A11260AD1DA005B27B4 /* libopencv_core.4.5.2.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 18860A0D260AD1DA005B27B4 /* libopencv_core.4.5.2.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		18860A15260AD241005B27B4 /* hoppe_common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18860A13260AD241005B27B4 /* hoppe_common.cpp */; };
 		18860A22260AF40A005B27B4 /* UGraph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18860A20260AF40A005B27B4 /* UGraph.cpp */; };
+		18F7928126104F2000E25EB2 /* Cube.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18F7927F26104F2000E25EB2 /* Cube.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -54,6 +55,8 @@
 		18860A1C260AD792005B27B4 /* nanoflann.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = nanoflann.hpp; sourceTree = "<group>"; };
 		18860A20260AF40A005B27B4 /* UGraph.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UGraph.cpp; sourceTree = "<group>"; };
 		18860A21260AF40A005B27B4 /* UGraph.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = UGraph.hpp; sourceTree = "<group>"; };
+		18F7927F26104F2000E25EB2 /* Cube.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Cube.cpp; sourceTree = "<group>"; };
+		18F7928026104F2000E25EB2 /* Cube.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Cube.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +101,8 @@
 				18860A14260AD241005B27B4 /* hoppe_common.hpp */,
 				18860A20260AF40A005B27B4 /* UGraph.cpp */,
 				18860A21260AF40A005B27B4 /* UGraph.hpp */,
+				18F7927F26104F2000E25EB2 /* Cube.cpp */,
+				18F7928026104F2000E25EB2 /* Cube.hpp */,
 			);
 			path = hoppe;
 			sourceTree = "<group>";
@@ -209,6 +214,7 @@
 				18860A15260AD241005B27B4 /* hoppe_common.cpp in Sources */,
 				18860A22260AF40A005B27B4 /* UGraph.cpp in Sources */,
 				188609FF260ACFBB005B27B4 /* main.cpp in Sources */,
+				18F7928126104F2000E25EB2 /* Cube.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

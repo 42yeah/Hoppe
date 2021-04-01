@@ -18,9 +18,13 @@
 #define HOPPE_LOG(fmt, ...) printf("%s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #endif
 
+#include <optional>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core.hpp>
 #include "hoppe_common.hpp"
+
+#define IN
+#define OUT
 
 
 class Hoppe {
@@ -49,13 +53,30 @@ private:
     
     auto create_grid_bounds() -> void;
     
-    auto density_estimation() -> float;
+
+    /// Estimate density, to be used later in sdf function
+    /// @param bounding_box_size size of the bounding box
+    auto density_estimation(cv::Vec3f bounding_box_size) -> float;
     
     auto cube_march() -> void;
     
     auto create_mesh() -> void;
     
     auto export_to_ply() -> void;
+    
+
+    /// Calculate bounds of the bounding box.
+    /// @param bounding_box_min minimal bounding box
+    /// @param bounding_box_max maximum bounding box
+    auto calculate_bounds(OUT cv::Vec3f &bounding_box_min,
+                          OUT cv::Vec3f &bounding_box_max) -> void;
+
+
+    /// Find the signed distance from the sample point to the model M.
+    /// In reality, M is not really known, however we do have tangent planes.
+    /// So we sample tangent plane instead.
+    /// @param point point to calculate distance from
+    auto sdf(cv::Point3f point) -> std::optional<float>;
     
     PointCloud pointcloud;
     Planes tangent_planes;

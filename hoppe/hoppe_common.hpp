@@ -12,6 +12,9 @@
 #include <opencv2/core.hpp>
 #include <nanoflann.hpp>
 
+#define POINT2VEC(p) cv::Vec3f(p.x, p.y, p.z)
+#define VEC2POINT(v) cv::Point3f(v(0), v(1), v(2))
+
 
 struct Plane {
     cv::Point3f origin;
