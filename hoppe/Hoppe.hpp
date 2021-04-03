@@ -36,7 +36,7 @@ public:
     /// @param path path to load point cloud
     auto load_pointcloud(std::string path) -> void;
     
-    auto export_to_ply(const std::string path) -> void;
+    auto export_mesh(const std::string path) -> void;
     
     Parameters parameters;
     
@@ -54,8 +54,6 @@ private:
     
     auto cube_march() -> void;
     
-    auto create_mesh() -> void;
-    
 
     /// Calculate bounds of the bounding box.
     /// @param bounding_box_min minimal bounding box
@@ -69,6 +67,11 @@ private:
     /// So we sample tangent plane instead.
     /// @param point point to calculate distance from
     auto sdf(cv::Point3f point) -> std::optional<float>;
+    
+
+    /// For debugging purposes only. Exports planecloud to path.
+    /// @param path path to export
+    auto export_to_ply(const std::string path) -> void;
     
     PointCloud pointcloud;
     Planes tangent_planes;

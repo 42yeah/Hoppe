@@ -54,10 +54,6 @@ public:
     /// @param to dump to which path
     auto dump(std::string to) -> void;
     
-    /// For debugging purposes only
-    /// @param path path to dump file
-    auto write_tmp_obj(std::string path) -> void;
-    
     std::vector<Triangle> faces;
 
 private:

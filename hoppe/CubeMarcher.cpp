@@ -1737,8 +1737,6 @@ auto CubeMarcher::march(std::function<std::optional<float> (cv::Point3f)> sdf,
         t.join();
     }
     HOPPE_LOG("Marching cubes done. Potential faces: %d", num_faces);
-    dump("sterfile");
-    write_tmp_obj("fake.obj");
 }
 
 auto CubeMarcher::dump(std::string to) -> void { 
@@ -1764,22 +1762,5 @@ auto CubeMarcher::dump(std::string to) -> void {
         }
     }
     ofs.close();
-}
-
-auto CubeMarcher::write_tmp_obj(std::string path) -> void {
-    std::ofstream obj_file(path);
-
-    for (auto i = 0; i < faces.size(); i++) {
-        const auto &pts = faces[i].points;
-        obj_file << "v " << pts[0].x << " " << pts[0].y << " " << pts[0].z << std::endl;
-        obj_file << "v " << pts[1].x << " " << pts[1].y << " " << pts[1].z << std::endl;
-        obj_file << "v " << pts[2].x << " " << pts[2].y << " " << pts[2].z << std::endl;
-    }
-    for (auto i = 0; i < faces.size(); i++) {
-        const auto base_idx = i * 3 + 1;
-        obj_file << "f " << base_idx << " " << (base_idx + 1) << " " << (base_idx + 2) << std::endl;
-    }
-    obj_file.close();
-    
 }
 

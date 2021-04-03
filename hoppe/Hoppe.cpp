@@ -25,43 +25,7 @@ auto Hoppe::run() -> bool {
 
     export_to_ply("planecloud.ply");
     
-    cv::Vec3f bounding_box_min, bounding_box_max;
-    calculate_bounds(bounding_box_min, bounding_box_max);
-    auto size = bounding_box_max - bounding_box_min;
-    HOPPE_LOG("Bounding box size: %f %f %f", size(0), size(1), size(2));
-
-    parameters.density = density_estimation(size);
-    
-    // OVERRIDE
-//    bounding_box_min = cv::Vec3f(-1.0f, -1.0f, -1.0f);
-//    bounding_box_max = cv::Vec3f(1.0f, 1.0f, 1.0f);
-//    size = bounding_box_max - bounding_box_min;
-//    parameters.density = 0.01f;
-
-    cv::Vec3i marching_size(ceilf(size(0) / parameters.density),
-                            ceilf(size(1) / parameters.density),
-                            ceilf(size(2) / parameters.density));
-    auto volume = 0;
-    do {
-        volume = marching_size(0) * marching_size(1) * marching_size(2);
-        if (volume > parameters.max_volume) {
-            parameters.density *= 2.0f;
-            marching_size = cv::Vec3i(ceilf(size(0) / parameters.density),
-                                      ceilf(size(1) / parameters.density),
-                                      ceilf(size(2) / parameters.density));
-        }
-    } while (volume > parameters.max_volume);
-    
-    HOPPE_LOG("Marching cube size: %d %d %d", marching_size(0),
-              marching_size(1), marching_size(2));
-    marcher.init(marching_size, parameters.density);
-    HOPPE_LOG("Estimated: from %f %f %f to %f %f %f",
-              bounding_box_min(0), bounding_box_min(1), bounding_box_min(2),
-              bounding_box_max(0), bounding_box_max(1), bounding_box_max(2));
-
-    marcher.march([&] (cv::Point3f p) {
-        return sdf(p);
-    }, VEC2POINT(bounding_box_min));
+    cube_march();
 
     return true;
 }
@@ -355,4 +319,61 @@ auto Hoppe::export_to_ply(const std::string path) -> void {
     }
     
     ofs.close();
+}
+
+auto Hoppe::cube_march() -> void {
+    cv::Vec3f bounding_box_min, bounding_box_max;
+    calculate_bounds(bounding_box_min, bounding_box_max);
+    auto size = bounding_box_max - bounding_box_min;
+    HOPPE_LOG("Bounding box size: %f %f %f", size(0), size(1), size(2));
+
+    parameters.density = density_estimation(size);
+
+    // OVERRIDE
+//    bounding_box_min = cv::Vec3f(-1.0f, -1.0f, -1.0f);
+//    bounding_box_max = cv::Vec3f(1.0f, 1.0f, 1.0f);
+//    size = bounding_box_max - bounding_box_min;
+//    parameters.density = 0.01f;
+
+    cv::Vec3i marching_size(ceilf(size(0) / parameters.density),
+                            ceilf(size(1) / parameters.density),
+                            ceilf(size(2) / parameters.density));
+    auto volume = 0;
+    do {
+        volume = marching_size(0) * marching_size(1) * marching_size(2);
+        if (volume > parameters.max_volume) {
+            parameters.density *= 2.0f;
+            marching_size = cv::Vec3i(ceilf(size(0) / parameters.density),
+                                      ceilf(size(1) / parameters.density),
+                                      ceilf(size(2) / parameters.density));
+        }
+    } while (volume > parameters.max_volume);
+    
+    HOPPE_LOG("Marching cube size: %d %d %d", marching_size(0),
+              marching_size(1), marching_size(2));
+    marcher.init(marching_size, parameters.density);
+    HOPPE_LOG("Estimated: from %f %f %f to %f %f %f",
+              bounding_box_min(0), bounding_box_min(1), bounding_box_min(2),
+              bounding_box_max(0), bounding_box_max(1), bounding_box_max(2));
+
+    marcher.march([&] (cv::Point3f p) {
+        return sdf(p);
+    }, VEC2POINT(bounding_box_min));
+}
+
+auto Hoppe::export_mesh(const std::string path) -> void {
+    HOPPE_LOG("Exporting mesh to %s as .obj format...", path.c_str());
+    std::ofstream obj_file(path);
+
+    for (auto i = 0; i < marcher.faces.size(); i++) {
+        const auto &pts = marcher.faces[i].points;
+        obj_file << "v " << pts[0].x << " " << pts[0].y << " " << pts[0].z << std::endl;
+        obj_file << "v " << pts[1].x << " " << pts[1].y << " " << pts[1].z << std::endl;
+        obj_file << "v " << pts[2].x << " " << pts[2].y << " " << pts[2].z << std::endl;
+    }
+    for (auto i = 0; i < marcher.faces.size(); i++) {
+        const auto base_idx = i * 3 + 1;
+        obj_file << "f " << base_idx << " " << (base_idx + 1) << " " << (base_idx + 2) << std::endl;
+    }
+    obj_file.close();
 }
