@@ -22,7 +22,7 @@
 class Hoppe {
 public:
     Hoppe() : parameters({ 8, -1.0f, 0.0f, 0.0f, 8000000ul }) {}
-    
+
     Hoppe(Parameters param) : parameters(param) {}
 
     ~Hoppe() = default;

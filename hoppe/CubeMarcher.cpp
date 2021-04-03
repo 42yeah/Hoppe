@@ -1723,9 +1723,7 @@ auto CubeMarcher::march(std::function<std::optional<float> (cv::Point3f)> sdf,
                         break;
                         
                     default:
-                        face_mutex.lock();
                         HOPPE_LOG("ERR! Unknown state: %d", cell.state);
-                        face_mutex.unlock();
                         break;
                 }
                 face_mutex.unlock();
