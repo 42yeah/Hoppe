@@ -9,6 +9,7 @@
 #include <fstream>
 #include <thread>
 #include <mutex>
+#include <iostream>
 #include "UGraph.hpp"
 
 
@@ -26,10 +27,41 @@ auto Hoppe::run() -> bool {
     
     cv::Vec3f bounding_box_min, bounding_box_max;
     calculate_bounds(bounding_box_min, bounding_box_max);
-    cv::Vec3f size = bounding_box_max - bounding_box_min;
+    auto size = bounding_box_max - bounding_box_min;
     HOPPE_LOG("Bounding box size: %f %f %f", size(0), size(1), size(2));
 
     parameters.density = density_estimation(size);
+    
+    // OVERRIDE
+//    bounding_box_min = cv::Vec3f(-1.0f, -1.0f, -1.0f);
+//    bounding_box_max = cv::Vec3f(1.0f, 1.0f, 1.0f);
+//    size = bounding_box_max - bounding_box_min;
+//    parameters.density = 0.01f;
+
+    cv::Vec3i marching_size(ceilf(size(0) / parameters.density),
+                            ceilf(size(1) / parameters.density),
+                            ceilf(size(2) / parameters.density));
+    auto volume = 0;
+    do {
+        volume = marching_size(0) * marching_size(1) * marching_size(2);
+        if (volume > parameters.max_volume) {
+            parameters.density *= 2.0f;
+            marching_size = cv::Vec3i(ceilf(size(0) / parameters.density),
+                                      ceilf(size(1) / parameters.density),
+                                      ceilf(size(2) / parameters.density));
+        }
+    } while (volume > parameters.max_volume);
+    
+    HOPPE_LOG("Marching cube size: %d %d %d", marching_size(0),
+              marching_size(1), marching_size(2));
+    marcher.init(marching_size, parameters.density);
+    HOPPE_LOG("Estimated: from %f %f %f to %f %f %f",
+              bounding_box_min(0), bounding_box_min(1), bounding_box_min(2),
+              bounding_box_max(0), bounding_box_max(1), bounding_box_max(2));
+
+    marcher.march([&] (cv::Point3f p) {
+        return sdf(p);
+    }, VEC2POINT(bounding_box_min));
 
     return true;
 }
@@ -240,7 +272,7 @@ auto Hoppe::fix_orientations() -> void {
 auto Hoppe::sdf(cv::Point3f point) -> std::optional<float> {
     auto closest_index = -1;
     auto closest_dist = 0.0f;
-    
+
     for (auto i = 0; i < tangent_planes.planes.size(); i++) {
         const auto &plane = tangent_planes.planes[i];
         const auto dist_to_sample_point = cv::norm(point - plane.origin);
@@ -255,7 +287,7 @@ auto Hoppe::sdf(cv::Point3f point) -> std::optional<float> {
     }
     const auto &plane = tangent_planes.planes[closest_index];
     const auto normal_p = VEC2POINT(plane.normal);
-    
+
     // Calculate projected length on normal.
     const auto projected_length = (point - plane.origin).dot(normal_p);
     const auto z = plane.origin - projected_length * normal_p;

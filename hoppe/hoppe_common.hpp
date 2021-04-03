@@ -12,6 +12,16 @@
 #include <opencv2/core.hpp>
 #include <nanoflann.hpp>
 
+#define HOPPE_LOG_LEVEL 1
+
+#if HOPPE_LOG_LEVEL == 0
+#define HOPPE_LOG(...)
+#elif HOPPE_LOG_LEVEL == 1
+#define HOPPE_LOG(fmt, ...) printf(fmt "\n", ##__VA_ARGS__)
+#elif HOPPE_LOG_LEVEL == 2
+#define HOPPE_LOG(fmt, ...) printf("%s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#endif
+
 #define POINT2VEC(p) cv::Vec3f(p.x, p.y, p.z)
 #define VEC2POINT(v) cv::Point3f(v(0), v(1), v(2))
 
@@ -24,6 +34,7 @@ struct Plane {
 struct Parameters {
     int k;
     float density, noise, isolevel;
+    unsigned long max_volume;
 };
 
 class PointCloud {

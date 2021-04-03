@@ -8,20 +8,12 @@
 #ifndef Hoppe_hpp
 #define Hoppe_hpp
 
-#define HOPPE_LOG_LEVEL 1
-
-#if HOPPE_LOG_LEVEL == 0
-#define HOPPE_LOG(...)
-#elif HOPPE_LOG_LEVEL == 1
-#define HOPPE_LOG(fmt, ...) printf(fmt "\n", ##__VA_ARGS__)
-#elif HOPPE_LOG_LEVEL == 2
-#define HOPPE_LOG(fmt, ...) printf("%s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
-#endif
 
 #include <optional>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core.hpp>
 #include "hoppe_common.hpp"
+#include "CubeMarcher.hpp"
 
 #define IN
 #define OUT
@@ -29,7 +21,7 @@
 
 class Hoppe {
 public:
-    Hoppe() : parameters({ 8, -1.0f, 0.0f, 0.0f }) {}
+    Hoppe() : parameters({ 8, -1.0f, 0.0f, 0.0f, 8000000ul }) {}
     
     Hoppe(Parameters param) : parameters(param) {}
 
@@ -43,6 +35,8 @@ public:
     /// Loads point cloud from `path`.
     /// @param path path to load point cloud
     auto load_pointcloud(std::string path) -> void;
+    
+    auto export_to_ply(const std::string path) -> void;
     
     Parameters parameters;
     
@@ -62,8 +56,6 @@ private:
     
     auto create_mesh() -> void;
     
-    auto export_to_ply(const std::string path) -> void;
-    
 
     /// Calculate bounds of the bounding box.
     /// @param bounding_box_min minimal bounding box
@@ -80,6 +72,7 @@ private:
     
     PointCloud pointcloud;
     Planes tangent_planes;
+    CubeMarcher marcher;
 };
 
 #endif /* Hoppe_hpp */
