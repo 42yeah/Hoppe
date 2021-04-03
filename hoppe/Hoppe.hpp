@@ -62,7 +62,7 @@ private:
     
     auto create_mesh() -> void;
     
-    auto export_to_ply() -> void;
+    auto export_to_ply(const std::string path) -> void;
     
 
     /// Calculate bounds of the bounding box.

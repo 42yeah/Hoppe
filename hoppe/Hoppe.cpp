@@ -19,8 +19,10 @@ auto Hoppe::run() -> bool {
     }
 
     estimate_planes();
-    
+
     fix_orientations();
+
+    export_to_ply("planecloud.ply");
     
     cv::Vec3f bounding_box_min, bounding_box_max;
     calculate_bounds(bounding_box_min, bounding_box_max);
@@ -297,3 +299,28 @@ auto Hoppe::density_estimation(cv::Vec3f bounding_box_size) -> float {
     return density;
 }
 
+auto Hoppe::export_to_ply(const std::string path) -> void {
+    HOPPE_LOG("Saving point cloud to %s", path.c_str());
+    
+    std::ofstream ofs(path);
+    ofs << "ply" << std::endl
+        << "format ascii 1.0" << std::endl
+        << "element vertex " << tangent_planes.planes.size() << std::endl
+        << "property float x" << std::endl
+        << "property float y" << std::endl
+        << "property float z" << std::endl
+        << "property uchar red" << std::endl
+        << "property uchar green" << std::endl
+        << "property uchar blue" << std::endl
+        << "end_header" << std::endl;
+        
+    for (const auto &p : tangent_planes.planes) {
+        const auto position = p.origin;
+        ofs << position.x << " " << position.y << " " << position.z << " "
+            << (int) 255 << " "
+            << (int) 125 << " "
+            << (int) 0 << " " << std::endl;
+    }
+    
+    ofs.close();
+}
