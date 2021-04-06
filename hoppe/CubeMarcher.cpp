@@ -129,6 +129,7 @@ auto CubeMarcher::march(std::function<std::optional<float> (cv::Point3f)> sdf,
                         cell.state += pow(2, i);
                     }
                 }
+                cell.state = 255 - cell.state;
                 if (cell.state == 0 || cell.state == 255) {
                     continue;
                 }

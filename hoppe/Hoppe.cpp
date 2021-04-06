@@ -214,9 +214,9 @@ auto Hoppe::fix_orientations() -> void {
     auto highest = std::max_element(tangent_planes.planes.begin(),
                      tangent_planes.planes.end(),
                      [] (const auto &p1, const auto &p2) {
-        return p1.origin.y > p2.origin.y;
+        return p1.origin.z > p2.origin.z;
     });
-    const cv::Vec3f up(0.0f, 1.0f, 0.0f);
+    const cv::Vec3f up(0.0f, 0.0f, 1.0f);
     if (highest->normal.dot(up) < 0.0f) {
         highest->normal = -highest->normal;
     }
